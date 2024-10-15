@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"math/rand"
 	"os"
@@ -30,7 +31,7 @@ func main() {
 		return
 	}
 
-	// Open the file for writing
+	// Open the file for writing with a large buffered I/O
 	file, err := os.Create("ip.txt")
 	if err != nil {
 		fmt.Println("Error creating file:", err)
@@ -38,10 +39,15 @@ func main() {
 	}
 	defer file.Close()
 
-	// Generate and write random IP addresses to the file
+	// Increase the buffer size
+	bufferSize := 64 * 1024 * 1024 // 64MB buffer
+	writer := bufio.NewWriterSize(file, bufferSize)
+	defer writer.Flush()
+
+	// Generate and write random IP addresses to the file in a single loop
 	for i := 0; i < numIPs; i++ {
 		ip := GenerateRandomIP()
-		_, err := file.WriteString(ip + "\n")
+		_, err := writer.WriteString(ip + "\n")
 		if err != nil {
 			fmt.Println("Error writing to file:", err)
 			return
