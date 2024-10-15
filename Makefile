@@ -7,7 +7,7 @@ run: $(FILENAME)
 
 $(FILENAME):
 	@echo "Generating test file..."
-	@/usr/bin/time -f "Time to generate  : %E" go run cmd/test-file-generator/main.go 10000000 && \
+	@/usr/bin/time -f "Time to generate  : %E" go run cmd/test-file-generator/main.go 100000000 && \
 	echo "File              : \"$(FILENAME)\" generated" && \
 	echo "Size              : $$(du -h $(FILENAME) | awk '{print $$1}')" && \
 	echo "Lines             : $$(wc -l $(FILENAME) | awk '{print $$1}')"
