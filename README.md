@@ -21,7 +21,7 @@ You should calculate the number of __unique addresses__ in this file using as li
 There is a "naive" algorithm for solving this problem (read line by line, put lines into HashSet).
 It's better if your implementation is more complicated and faster than this naive algorithm.
 
-Before submitting an assignment, it will be nice to check how it handles this [file](https://ecwid-vgv-storage.s3.eu-central-1.amazonaws.com/ip_addresses.zip). Attention - the file weighs about **20Gb**, and unzips to about **120Gb**.
+Before submitting an assignment, it will be nice to check how it handles this [file](https://ecwid-vgv-storage.s3.eu-central-1.amazonaws.com/ip_addresses.zip). Attention - the file weights about **20Gb**, and unzips to about **120Gb**.
 
 ## How to run
 
@@ -63,6 +63,7 @@ I know that I need to execute several time at least and take average. I do not c
 
 | Attempt Number | Approach | Execution Time | Diff | Commit(s) | Unique Ids | Comment |
 |-----------------|---|---|---|--|--|--|
-| 0 | Create a script that creates file `100.000.000` lines | 2.18.40 | - | [946d03a](https://github.com/vanyason/Billion-Rows-Test/commit/946d03a0fb515ed30058e1161cdd7bc76e14065a) and [81a7e7c](https://github.com/vanyason/Billion-Rows-Test/commit/81a7e7c9af8a20519c358d27f9a6a1552cad4a19) | - |
+| 0 | Create a script that creates file `100.000.000` lines | 2.18.40 | - | [946d03a](https://github.com/vanyason/Billion-Rows-Test/commit/946d03a0fb515ed30058e1161cdd7bc76e14065a) and [81a7e7c](https://github.com/vanyason/Billion-Rows-Test/commit/81a7e7c9af8a20519c358d27f9a6a1552cad4a19) | - | File with `100.000.000` lines is `1.4GB` |
 | 1 | Naive approach (open, read, save, print length)| 13.37.89 | - | [df039be](https://github.com/vanyason/Billion-Rows-Test/commit/df039bed06728c767020ff3d66abb323325f5ebc) | `98.843.672` | - |
 | 2 | Still Naive approach (open, read, save, print length) but using `bufio.NewScanner` with buffer set to `100MB` | 0.33.36 | ~13 minutes faster | [ffd9ffe13](https://github.com/vanyason/Billion-Rows-Test/commit/ffd9ffe13d3ad6511dd281e762c26514ff9edef6) | `98.843.672` | I didn't expect such boost. At this point I am going to increase test file to 1.000.000.000 lines |
+| 2.1 | Updated "File generator" and created `1.000.000.000` lines input | 05.06.33 | - | [99701fe4](https://github.com/vanyason/Billion-Rows-Test/commit/99701fe4feabd3b7310779b96371fd11c4bef5be) | - | File with `1.000.000.000` lines is `14GB`. What kind of file was originally provided in the task section ? 🤔 |
