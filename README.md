@@ -56,4 +56,4 @@ My laptop specs:
 | Attempt Number | Approach | Execution Time | Diff | Commit(s) | Unique Ids |
 |-----------------|---|---|---|--|--|
 | 0 | Create a script that creates file `100.000.000` lines | 2.18.40 | - | [946d03a](https://github.com/vanyason/Billion-Rows-Test/commit/946d03a0fb515ed30058e1161cdd7bc76e14065a) and [81a7e7c](https://github.com/vanyason/Billion-Rows-Test/commit/81a7e7c9af8a20519c358d27f9a6a1552cad4a19) | - |
-| 1 | Naive approach (open, read, save, print length)| 13.37.89 | - | - | `98.843.672` |
+| 1 | Naive approach (open, read, save, print length)| 13.37.89 | - | [df039be](https://github.com/vanyason/Billion-Rows-Test/commit/df039bed06728c767020ff3d66abb323325f5ebc) | `98.843.672` |
