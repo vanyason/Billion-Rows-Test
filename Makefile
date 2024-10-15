@@ -4,6 +4,7 @@ FILENAME := ip.txt
 
 run: $(FILENAME)
 	@echo "Running the test..."
+	@/usr/bin/time -f "Test took time    : %E" go run cmd/test/main.go
 
 $(FILENAME):
 	@echo "Generating test file..."

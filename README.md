@@ -25,7 +25,7 @@ Before submitting an assignment, it will be nice to check how it handles this [f
 
 ## How to run
 
-Just execute `make` if you are on a Linux machine
+Just execute `make run` if you are on a Linux machine
 
 It will generate "ip.txt" with `100.000.000` lines of random IPs (`1.4GB`), run the test and print time passed with the `time` command.
 
@@ -47,12 +47,13 @@ My laptop specs:
     ###############          Kernel: x86_64 Linux 6.9.3-76060903-generic
     ################         Shell: fish 3.3.1
    #################         Disk: 60G / 93G (68%)
- #####################       CPU: Intel Core i7-10870H @ 16x 5GHz [63.0°C]
+ #####################       CPU: Intel Core i7-10870H @ 16x 5GHz
  #####################       GPU: NVIDIA GeForce RTX 3060 Laptop GPU
    #################         RAM: 8673MiB / 15862MiB
 
 ```
 
-| Attempt Number | Approach | Execution Time | Diff | Commit(s) |
-|-----------------|---|---|---|--|
-|0 | Create a script that creates file `100.000.000` lines | 2.18.40 | - | [946d03a](https://github.com/vanyason/Billion-Rows-Test/commit/946d03a0fb515ed30058e1161cdd7bc76e14065a) and [81a7e7c](https://github.com/vanyason/Billion-Rows-Test/commit/81a7e7c9af8a20519c358d27f9a6a1552cad4a19) |
+| Attempt Number | Approach | Execution Time | Diff | Commit(s) | Unique Ids |
+|-----------------|---|---|---|--|--|
+| 0 | Create a script that creates file `100.000.000` lines | 2.18.40 | - | [946d03a](https://github.com/vanyason/Billion-Rows-Test/commit/946d03a0fb515ed30058e1161cdd7bc76e14065a) and [81a7e7c](https://github.com/vanyason/Billion-Rows-Test/commit/81a7e7c9af8a20519c358d27f9a6a1552cad4a19) | - |
+| 1 | Naive approach (open, read, save, print length)| 13.37.89 | - | - | `98.843.672` |
