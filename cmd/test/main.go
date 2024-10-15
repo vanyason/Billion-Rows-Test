@@ -1,12 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 )
 
 func main() {
-	// Try opening the file for reading
 	file, err := os.Open("ip.txt")
 	if err != nil {
 		fmt.Println("Error opening file:", err)
@@ -14,15 +14,18 @@ func main() {
 	}
 	defer file.Close()
 
-	// Naive approach to read the file line by line, save to hash map and print hash map length
+	scanner := bufio.NewScanner(file)
+	buffer := make([]byte, 100*1024*1024) // 100 MB buffer
+	scanner.Buffer(buffer, len(buffer))
+
 	set := map[string]struct{}{}
-	for {
-		var ip string
-		_, err := fmt.Fscanln(file, &ip)
-		if err != nil {
-			break
-		}
+	for scanner.Scan() {
+		ip := scanner.Text()
 		set[ip] = struct{}{}
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Println("Error reading file:", err)
 	}
 
 	fmt.Println("Number of unique IP addresses:", len(set))
