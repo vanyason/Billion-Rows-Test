@@ -27,7 +27,7 @@ Before submitting an assignment, it will be nice to check how it handles this [f
 
 Just execute `make run` if you are on a Linux machine
 
-It will generate "ip.txt" with `100.000.000` lines of random IPs (`1.4GB`), run the test and print time passed with the `time` command.
+It will generate "ip.txt" with `1.000.000.000` lines of random IPs (`14GB`), run the test and print time passed with the `time` command.
 
 > I am low on free space, sorry 😢
 
@@ -69,3 +69,4 @@ I know that I need to execute several time at least and take average. I do not c
 | 2.1 | Updated "File generator" and created `1.000.000.000` lines input | 05.06.33 | - | [99701fe4](https://github.com/vanyason/Billion-Rows-Test/commit/99701fe4feabd3b7310779b96371fd11c4bef5be) | - | File with `1.000.000.000` lines is `14GB`. What kind of file was originally provided in the task section ? 🤔 |
 | 2.2 | Same as 2 but on `1 billion lines` | 31.57.81 | - | [ffd9ffe13](https://github.com/vanyason/Billion-Rows-Test/commit/ffd9ffe13d3ad6511dd281e762c26514ff9edef6) | `still unknown` | Total failure. Luckly I had `20GB` swap space. In a minute RAM was full, next 30 minutes script tried to survive but still crashed |
 | 3 | Using bitset to store all the possible ips | 2.45.23 | - | [6751815](https://github.com/vanyason/Billion-Rows-Test/commit/675181544300c2d215f8bdf45a88d68af179f395) | `892117370` | As I discovered during step `2.2`, I can dramatically fail on lack of RAM. Because of that was decided to convert all the `IPs` to `int`. According to my calculations if all the IPs are `2^32` , and we assign each IP a bit, that is `2^32 bits = 536870912 bytes = 524288 Kb = 512 MB`. Bitset is a good datastructure for this case because uses only `512 MB` to store all the IPS possible + `concurrently safe` (Since it is append only and operation is Idempotent) |
+| 4 | Added 32 (my CPU amount) goroutines to process file in equal sections | 0.39.67 | 6x faster | [bb859e0](https://github.com/vanyason/Billion-Rows-Test/commit/bb859e0cd86758be2fcee2638e1141001c986f6b) | `892117370` | Not impressed. I use bufio.Scanner which goes line by line. That does not allow goroutines to effectively jump to their chunk. Moreover, approach where goroutine reads and processes data at the same time feels inefficient |
