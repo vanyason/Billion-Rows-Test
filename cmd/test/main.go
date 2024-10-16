@@ -2,12 +2,16 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io"
+	"math/bits"
 	"net"
 	"os"
 	"runtime"
 	"sync"
+	"sync/atomic"
 )
 
 type BitSet struct {
@@ -21,48 +25,108 @@ func NewBitSet(size int) *BitSet {
 }
 
 func (b *BitSet) Set(pos uint32) {
-	index := pos / 64            // Determine which 64-bit block the bit falls into
-	offset := pos % 64           // Determine the bit's position within the block
-	b.bits[index] |= 1 << offset // Use bitwise OR to set the bit
+	word, bit := pos/64, uint(pos%64)
+	mask := uint64(1) << bit
+
+	// Atomically set the bit using OR operation
+	for {
+		old := atomic.LoadUint64(&b.bits[word])
+		new := old | mask
+		if atomic.CompareAndSwapUint64(&b.bits[word], old, new) {
+			break
+		}
+	}
 }
 
 func (b *BitSet) GetUniqueIPCount() int {
 	count := 0
 	for _, block := range b.bits {
-		for block != 0 {
-			count += int(block & 1)
-			block >>= 1
-		}
+		count += bits.OnesCount64(block)
 	}
 	return count
 }
 
-const (
-	MAX_IP      = 4294967296 // 2^32
-	TOTAL_LINES = 1000000000
-)
+type part struct {
+	offset, size int64
+}
 
-func processLineRange(startLine, endLine int, bitset *BitSet, wg *sync.WaitGroup) {
+func splitFile(inputPath string, numParts int) ([]part, error) {
+	const maxLineLength = 100
+
+	f, err := os.Open(inputPath)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close() // Ensure file is closed after the function ends
+
+	st, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+	size := st.Size()
+	splitSize := size / int64(numParts)
+
+	parts := make([]part, 0, numParts)
+	offset := int64(0)
+
+	for i := 0; i < numParts && offset < size; i++ {
+		seekOffset := offset + splitSize
+
+		// Move the seek offset back to the start of a new line
+		if seekOffset >= size {
+			seekOffset = size
+		} else {
+			if _, err := f.Seek(seekOffset, io.SeekStart); err != nil {
+				return nil, err
+			}
+
+			buf := make([]byte, maxLineLength)
+			n, err := io.ReadFull(f, buf)
+			if err != nil && err != io.ErrUnexpectedEOF {
+				return nil, err
+			}
+
+			chunk := buf[:n]
+			newline := bytes.IndexByte(chunk, '\n')
+			if newline < 0 {
+				return nil, fmt.Errorf("newline not found near offset %d", seekOffset)
+			}
+
+			// Adjust the seekOffset to the first newline after splitSize
+			seekOffset += int64(newline + 1)
+		}
+
+		// Append the part with start offset and length
+		parts = append(parts, part{offset: offset, size: seekOffset - offset})
+		offset = seekOffset
+	}
+
+	return parts, nil
+}
+
+func processRange(fileOffset int64, fileSize int64, bitset *BitSet, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	file, err := os.Open("ip.txt")
 	if err != nil {
-		fmt.Println("Error opening file:", err)
-		return
+		panic(err)
 	}
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-
-	// Skip to the start line
-	for i := 0; i < startLine && scanner.Scan(); i++ {
+	_, err = file.Seek(fileOffset, io.SeekStart)
+	if err != nil {
+		panic(err)
 	}
+	f := io.LimitedReader{R: file, N: fileSize}
+
+	scanner := bufio.NewScanner(&f)
 
 	// Process lines in the range
-	for i := startLine; i < endLine && scanner.Scan(); i++ {
+	for scanner.Scan() {
 		ipStr := scanner.Text()
 		ip := net.ParseIP(ipStr).To4()
 		if ip == nil {
+			fmt.Println("Invalid IP address:", ipStr)
 			continue
 		}
 		bitset.Set(binary.BigEndian.Uint32(ip))
@@ -74,21 +138,24 @@ func processLineRange(startLine, endLine int, bitset *BitSet, wg *sync.WaitGroup
 }
 
 func main() {
-	numThreads := runtime.NumCPU()
-	linesPerGoroutine := TOTAL_LINES / numThreads
+	const MAX_IP = 4294967296 // 2^32
+
+	numThreads := runtime.NumCPU() - 1
 	var wg sync.WaitGroup
 	bitset := NewBitSet(MAX_IP)
 
+	parts, err := splitFile("ip.txt", numThreads)
+	if err != nil {
+		fmt.Println("Error splitting file:", err)
+		return
+	}
+
+	wg.Add(numThreads)
 	for i := 0; i < numThreads; i++ {
-		startLine := i * linesPerGoroutine
-		endLine := startLine + linesPerGoroutine
-		if i == numThreads-1 {
-			endLine = TOTAL_LINES + 1 // Ensure the last goroutine reads any remaining lines
-		}
-		wg.Add(1)
-		go processLineRange(startLine, endLine, bitset, &wg)
+		go processRange(parts[i].offset, parts[i].size, bitset, &wg)
 	}
 
 	wg.Wait()
+
 	fmt.Println("Number of unique IP addresses:", bitset.GetUniqueIPCount())
 }
