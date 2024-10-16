@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"runtime"
+	"sync"
 )
 
 type BitSet struct {
@@ -35,9 +37,14 @@ func (b *BitSet) GetUniqueIPCount() int {
 	return count
 }
 
-const MAX_IP = 4294967296 // 2^32
+const (
+	MAX_IP      = 4294967296 // 2^32
+	TOTAL_LINES = 1000000000
+)
 
-func main() {
+func processLineRange(startLine, endLine int, bitset *BitSet, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	file, err := os.Open("ip.txt")
 	if err != nil {
 		fmt.Println("Error opening file:", err)
@@ -46,26 +53,42 @@ func main() {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	buffer := make([]byte, 64*1024*1024) // 64 MB buffer
-	scanner.Buffer(buffer, len(buffer))
 
-	bitset := NewBitSet(MAX_IP)
+	// Skip to the start line
+	for i := 0; i < startLine && scanner.Scan(); i++ {
+	}
 
-	for scanner.Scan() {
+	// Process lines in the range
+	for i := startLine; i < endLine && scanner.Scan(); i++ {
 		ipStr := scanner.Text()
 		ip := net.ParseIP(ipStr).To4()
-
 		if ip == nil {
-			fmt.Println("Invalid IP address:", ipStr)
 			continue
 		}
-
 		bitset.Set(binary.BigEndian.Uint32(ip))
 	}
 
 	if err := scanner.Err(); err != nil {
 		fmt.Println("Error reading file:", err)
 	}
+}
 
+func main() {
+	numThreads := runtime.NumCPU()
+	linesPerGoroutine := TOTAL_LINES / numThreads
+	var wg sync.WaitGroup
+	bitset := NewBitSet(MAX_IP)
+
+	for i := 0; i < numThreads; i++ {
+		startLine := i * linesPerGoroutine
+		endLine := startLine + linesPerGoroutine
+		if i == numThreads-1 {
+			endLine = TOTAL_LINES + 1 // Ensure the last goroutine reads any remaining lines
+		}
+		wg.Add(1)
+		go processLineRange(startLine, endLine, bitset, &wg)
+	}
+
+	wg.Wait()
 	fmt.Println("Number of unique IP addresses:", bitset.GetUniqueIPCount())
 }
